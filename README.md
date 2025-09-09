@@ -4,17 +4,20 @@ This project is a simple interpreter for the Yisp language, written in C.
 
 ## Organization of Code
 
-- `main.c`: Contains the entry point (`main` function) and core interpreter logic.
-- `test_plan.txt`: Describes the testing strategy and specific test cases.
+- `main.c`: Contains the entry point (`main` function), core interpreter logic, and data structures for S-expressions.
+- `test_plan.txt`: Contains the test plan, listing test cases and expected behaviors for S-expression parsing and type checking.
+- `test_results.txt`: Stores the results of running the test plan against the interpreter.
 - `main`: Compiled executable generated from `main.c`.
 
 ## Directory Structure
 
 ```text
 /Users/ahmedryan/Projects/yisp-interpreter
-├── main.c          # Main source file (entry point)
-├── main            # Compiled executable
-├── test_plan.txt   # Test plan and descriptions
+├── main.c            # Main source file (entry point)
+├── main              # Compiled executable
+├── test_plan.txt     # Test plan for S-expression parsing
+├── test_results.txt  # Results of running tests
+├── README.md         # Project documentation
 ```
 
 ## Build Process
@@ -36,7 +39,3 @@ To run the interpreter:
 ## Main Function Location
 
 The `main` function is located in `main.c`.
-
----
-
-Feel free to modify or extend the interpreter and tests as needed.
