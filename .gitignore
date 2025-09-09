@@ -1,0 +1,19 @@
+# macOS system files
+.DS_Store
+
+# Default GCC executable
+a.out
+
+# Executable and object files
+*.out
+*.o
+*.exe
+
+# Build directories
+/bin/
+/build/
+/obj/
+
+# Temporary files
+*~
+*.swp
