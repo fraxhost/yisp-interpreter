@@ -1,0 +1,39 @@
+## S-Expression Test Plan
+
+| Test ID | Input         | Type Expected        | isNil | isNumber | isSymbol | isString | isList | isSExpr | Notes / Edge Cases             |
+| ------- | ------------- | -------------------- | ----- | -------- | -------- | -------- | ------ | ------- | ------------------------------ |
+| 1       | `nil`         | Atom (nil)           | true  | false    | false    | false    | false  | true    | `nil` is a valid S-expression  |
+| 2       | `42`          | Atom (number)        | false | true     | false    | false    | false  | true    | Integer number                 |
+| 3       | `3.14`        | Atom (number)        | false | true     | false    | false    | false  | true    | Float number                   |
+| 4       | `symbol`      | Atom (symbol)        | false | false    | true     | false    | false  | true    | Letters only                   |
+| 5       | `foo_bar-123` | Atom (symbol)        | false | false    | true     | false    | false  | true    | Letters, digits, `_` and `-`   |
+| 6       | `"hello"`     | Atom (string)        | false | false    | false    | true     | false  | true    | Double-quoted string           |
+| 7       | `(1 2 3)`     | List                 | false | false    | false    | false    | true   | true    | Simple list of numbers         |
+| 8       | `(a (b c) d)` | List                 | false | false    | false    | false    | true   | true    | Nested lists                   |
+| 9       | `()`          | List (empty)         | false | false    | false    | false    | true   | true    | Empty list represented as `()` |
+| 10      | `(1 2`        | Invalid S-expression | false | false    | false    | false    | false  | false   | Missing closing `)`            |
+| 11      | `"`           | Invalid S-expression | false | false    | false    | false    | false  | false   | Unterminated string            |
+| 12      | `(1 (2 3)`    | Invalid S-expression | false | false    | false    | false    | false  | false   | Nested list missing `)`        |
+| 13      | `1a`          | Invalid atom         | false | false    | false    | false    | false  | false   | Number cannot have letters     |
+| 14      | `(`           | Invalid S-expression | false | false    | false    | false    | false  | false   | Single open parenthesis        |
+
+
+
+### Test Plan Notes
+
+1. Atoms include: `nil`, numbers, symbols, and strings.
+
+2. Lists include: any number of nested S-expressions inside `()`.
+
+3. Invalid inputs check for parser robustness — missing parentheses, unterminated strings, illegal symbols.
+
+4. Each input will be run against our functions:
+
+   * `isNil()`
+   * `isNumber()`
+   * `isSymbol()`
+   * `isString()`
+   * `isList()`
+   * `isSExpr()`
+
+5. Pass criteria: The function should return `true` if the input matches the type, otherwise `false`. For `isSExpr()`, it must return `true` only if the entire input forms a valid S-expression.
