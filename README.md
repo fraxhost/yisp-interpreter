@@ -1,41 +1,87 @@
-# Yisp Interpreter
+# README
 
-This project is a simple interpreter for the Yisp language, written in C.
+This project is a Lisp/Scheme interpreter implemented in C. It supports interactive mode, file input mode, and an automated test suite.
 
-## Organization of Code
+***
 
-- `main.c`: Contains the entry point (`main` function), core interpreter logic, and data structures for S-expressions.
-- `test_plan.txt`: Contains the test plan, listing test cases and expected behaviors for S-expression parsing and type checking.
-- `test_results.txt`: Stores the results of running the test plan against the interpreter.
-- `main`: Compiled executable generated from `main.c`.
+## File Structure
 
-## Directory Structure
+- **main.c**  
+  Contains the main program logic including `main()` function and the `run()` loop for interactive or file evaluation.
 
-```text
-/Users/ahmedryan/Projects/yisp-interpreter
-├── main.c            # Main source file (entry point)
-├── main              # Compiled executable
-├── test_plan.txt     # Test plan for S-expression parsing
-├── test_results.txt  # Results of running tests
-├── README.md         # Project documentation
+- **sexpr.h**  
+  Implements S-expression data structures, parsing, printing, and related manipulation functions.
+
+- **utils.h**  
+  Contains utility functions supporting core functionalities, such as string handling and helper methods.
+
+- **tests.h**  
+  Implements the automated test suite with a set of expressions, expected outputs, and a test runner function.
+
+***
+
+## How to Build
+
+Use a standard C compiler like `gcc` or `clang`. Example:
+
+```bash
+gcc -o yisp main.c -lm
 ```
 
-## Build Process
+Add other `.c` files as necessary depending on project organization.
 
-To build the main interpreter:
+***
 
-```sh
-gcc -o main main.c
+## How to Run
+
+### 1. Interactive Mode
+
+Start the interpreter without arguments for interactive Lisp prompt:
+
+```bash
+./yisp
 ```
 
-## Running
+You will see a prompt `>`. Enter S-expressions and see their evaluation results immediately.
 
-To run the interpreter:
+Type `exit` to quit.
 
-```sh
-./main
+***
+
+### 2. File Input Mode
+
+Provide the path to a file containing Lisp expressions as an argument:
+
+```bash
+./yisp input.txt
 ```
 
-## Main Function Location
+The interpreter will read the entire file, parse and evaluate the expressions, and print the final result.
 
-The `main` function is located in `main.c`.
+***
+
+### 3. Run Automated Tests
+
+Run the program with the `--test` argument to execute the full test suite:
+
+```bash
+./yisp --test
+```
+
+This runs a predefined set of test expressions against expected results, printing pass/fail status and details for each.
+
+***
+
+## Notes
+
+- The interpreter maintains state (variable and function definitions) during interactive and test suite runs.
+- Error messages are printed for invalid expressions (e.g., division by zero).
+- The codebase modularly separates core S-expression logic (`sexpr.h`), utilities (`utils.h`), main program (`main.c`), and tests (`tests.h`).
+
+***
+
+For questions or contributions, please reach out or submit pull requests.
+
+***
+
+This guide should help you build, run, and test the interpreter efficiently.
