@@ -597,97 +597,137 @@ void printSExpr(SExpr *s)
     }
 }
 
-//  ==================== CHECK S-EXPRESSION ====================
+// ==================== PREDICATE FUNCTIONS ACCEPTING SExpr* ====================
 
-bool isNil(const char *input)
+bool isNilSExpr(SExpr *sexp)
 {
-    return strcmp(input, "nil") == 0;
+    return sexp != NULL && sexp->type == TYPE_NIL;
 }
 
-bool isNumber(const char *input)
+bool isNumberSExpr(SExpr *sexp)
 {
-    if (input == NULL || *input == '\0')
+    if (!sexp)
         return false;
-
-    char *endptr;
-    strtod(input, &endptr); // try to parse as number
-
-    return *endptr == '\0'; // true if whole string was a number
+    return sexp->type == TYPE_ATOM_NUMBER;
 }
 
-bool isSymbol(const char *input)
+bool isSymbolSExpr(SExpr *sexp)
 {
-    if (input == NULL || *input == '\0')
+    if (!sexp)
+        return false;
+    return sexp->type == TYPE_ATOM_SYMBOL;
+}
+
+bool isStringSExpr(SExpr *sexp)
+{
+    if (!sexp)
+        return false;
+    return sexp->type == TYPE_ATOM_STRING;
+}
+
+bool isListSExpr(SExpr *sexp)
+{
+    if (!sexp)
+        return false;
+    // Lists are nil or cons cells
+    return sexp->type == TYPE_NIL || sexp->type == TYPE_CONS;
+}
+
+bool isSExprSExpr(SExpr *sexp)
+{
+    if (!sexp)
         return false;
 
-    // a symbol can’t start with a digit or '(' or ')'
-    if (isdigit((unsigned char)*input) || *input == '(' || *input == ')')
-        return false;
-
-    // allow letters, digits, underscores, maybe others
-    for (const char *p = input; *p; p++)
+    switch (sexp->type)
     {
-        if (!(isalnum((unsigned char)*p) || *p == '_' || *p == '-'))
-            return false;
+    case TYPE_NIL:
+    case TYPE_ATOM_NUMBER:
+    case TYPE_ATOM_STRING:
+    case TYPE_ATOM_SYMBOL:
+    case TYPE_CONS:
+        return true;
+    default:
+        return false;
     }
-
-    return true;
 }
 
-bool isString(const char *input)
+// Maps any SExpr to boolean Lisp value: only nil is false, all else true (t)
+SExpr *sexp_to_bool(SExpr *sexp)
 {
-    if (input == NULL || *input == '\0')
-        return false;
-
-    // a string must start and end with double quotes
-    size_t len = strlen(input);
-    if (len < 2)
-        return false;
-
-    return input[0] == '"' && input[len - 1] == '"';
+    if (sexp == NULL || sexp->type == TYPE_NIL)
+    {
+        return sym_nil; // false
+    }
+    else
+    {
+        return sym_true; // true
+    }
 }
 
-bool isList(const char *input)
+// ==================== BUILTIN PREDICATE WRAPPERS ====================
+
+SExpr *pred_bool(SExpr *args)
 {
-    if (input == NULL || *input == '\0')
-        return false;
+    if (args->type != TYPE_CONS)
+        return sym_nil;
 
-    const char *p = input;
-    skipWhitespace(&p);
-
-    // Must start with '(' and end with ')'
-    size_t len = strlen(p);
-    if (len < 2)
-        return false;
-
-    if (p[0] != '(' || p[len - 1] != ')')
-        return false;
-
-    // Use your existing parser to validate inner content
-    SExpr *expr = parseSExpr(&p);
-    if (expr == NULL)
-        return false;
-
-    skipWhitespace(&p);
-    return *p == '\0';
+    SExpr *arg = car(args);
+    SExpr *b = sexp_to_bool(arg);
+    return b;
 }
 
-bool isSExpr(const char *input)
+SExpr *pred_nil(SExpr *args)
 {
-    const char *p = input;
-    skipWhitespace(&p);
+    if (args->type != TYPE_CONS)
+        return sym_nil;
 
-    // Try parsing
-    SExpr *expr = parseSExpr(&p);
-    if (expr == NULL)
-        return false;
+    SExpr *arg = car(args);
+    return isNilSExpr(arg) ? sym_true : sym_nil;
+}
 
-    skipWhitespace(&p);
+SExpr *pred_number(SExpr *args)
+{
+    if (args->type != TYPE_CONS)
+        return sym_nil;
 
-    // Valid only if we've consumed the whole string
-    bool valid = (*p == '\0');
+    SExpr *arg = car(args);
+    return isNumberSExpr(arg) ? sym_true : sym_nil;
+}
 
-    return valid;
+SExpr *pred_symbol(SExpr *args)
+{
+    if (args->type != TYPE_CONS)
+        return sym_nil;
+
+    SExpr *arg = car(args);
+    return isSymbolSExpr(arg) ? sym_true : sym_nil;
+}
+
+SExpr *pred_string(SExpr *args)
+{
+    if (args->type != TYPE_CONS)
+        return sym_nil;
+
+    SExpr *arg = car(args);
+    return isStringSExpr(arg) ? sym_true : sym_nil;
+}
+
+SExpr *pred_list(SExpr *args)
+{
+    if (args->type != TYPE_CONS)
+        return sym_nil;
+
+    SExpr *arg = car(args);
+    return isListSExpr(arg) ? sym_true : sym_nil;
+}
+
+SExpr *pred_sexpr(SExpr *args)
+{
+    if (args->type != TYPE_CONS)
+        return sym_nil;
+
+    SExpr *arg = car(args);
+    return isSExprSExpr(arg) ? sym_true : sym_nil;
 }
 
 // Helper to recursively evaluate all arguments in a list
@@ -734,6 +774,21 @@ SExpr *dispatch_builtin(const char *fn_name, SExpr *args)
         return cdr(car(args));
     if (strcmp(fn_name, "cons") == 0)
         return cons(car(args), car(cdr(args)));
+    // Predicate built-ins
+    if (strcmp(fn_name, "nil?") == 0)
+        return pred_nil(args);
+    if (strcmp(fn_name, "number?") == 0)
+        return pred_number(args);
+    if (strcmp(fn_name, "symbol?") == 0)
+        return pred_symbol(args);
+    if (strcmp(fn_name, "string?") == 0)
+        return pred_string(args);
+    if (strcmp(fn_name, "list?") == 0)
+        return pred_list(args);
+    if (strcmp(fn_name, "sexpr?") == 0)
+        return pred_sexpr(args);
+    if (strcmp(fn_name, "sexp_to_bool") == 0)
+        return pred_bool(args);
 
     return symbol("Error: unrecognized function");
 }
@@ -956,78 +1011,11 @@ void run()
     return;
 }
 
-void runTests()
-{
-    // Redirect stdout to a file
-    FILE *f = freopen("test_results.txt", "w", stdout);
-    if (!f)
-    {
-        perror("Failed to open test_results.txt");
-        return;
-    }
-
-    TestCase tests[] = {
-        // input nil number symbol string list s-expression
-        {"nil", true, false, false, false, false, true},
-        {"42", false, true, false, false, false, true},
-        {"3.14", false, true, false, false, false, true},
-        {"symbol", false, false, true, false, false, true},
-        {"foo_bar-123", false, false, true, false, false, true},
-        {"\"hello\"", false, false, false, true, false, true},
-        {"(1 2 3)", false, false, false, false, true, true},
-        {"((a b) c)", false, false, false, false, true, true},
-        {"(", false, false, false, false, false, false},
-        {")", false, false, false, false, false, false},
-        {"1a", false, false, false, false, false, false},
-        {"(1 2", false, false, false, false, false, false},
-        {"(1 (2 3)", false, false, false, false, false, false},
-        {"\"unterminated", false, false, false, false, false, false}};
-
-    int n = sizeof(tests) / sizeof(tests[0]);
-    for (int i = 0; i < n; i++)
-    {
-        printf("Test %2d: \"%s\"\n", i + 1, tests[i].input);
-
-        bool resultNil = isNil(tests[i].input);
-        bool resultNum = isNumber(tests[i].input);
-        bool resultSym = isSymbol(tests[i].input);
-        bool resultStr = isString(tests[i].input);
-        bool resultList = isList(tests[i].input);
-        bool resultSExpr = isSExpr(tests[i].input);
-
-        printf("  isNil:     %s (%s)\n", resultNil ? "true" : "false",
-               resultNil == tests[i].shouldBeNil ? "PASS" : "FAIL");
-
-        printf("  isNumber:  %s (%s)\n", resultNum ? "true" : "false",
-               resultNum == tests[i].shouldBeNumber ? "PASS" : "FAIL");
-
-        printf("  isSymbol:  %s (%s)\n", resultSym ? "true" : "false",
-               resultSym == tests[i].shouldBeSymbol ? "PASS" : "FAIL");
-
-        printf("  isString:  %s (%s)\n", resultStr ? "true" : "false",
-               resultStr == tests[i].shouldBeString ? "PASS" : "FAIL");
-
-        printf("  isList:    %s (%s)\n", resultList ? "true" : "false",
-               resultList == tests[i].shouldBeList ? "PASS" : "FAIL");
-
-        printf("  isSExpr:   %s (%s)\n", resultSExpr ? "true" : "false",
-               resultSExpr == tests[i].shouldBeSExpr ? "PASS" : "FAIL");
-
-        printf("\n");
-    }
-
-    // Restore stdout back to console
-    fclose(f);
-    freopen("/dev/tty", "w", stdout); // on Unix/macOS
-}
-
 int main()
 {
     init_symbols();
 
     run();
-
-    // runTests();
 
     return 0;
 }
