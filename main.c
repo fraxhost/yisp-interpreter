@@ -784,110 +784,124 @@ SExpr *eval(SExpr *sexp, Env *env)
     {
         SExpr *fn = car(sexp);
 
-        if (fn->type != TYPE_ATOM_SYMBOL)
-            return symbol("Error: function name must be a symbol");
+        // Evaluate function position before dispatch
+        SExpr *fn_val = eval(fn, env);
 
-        // Handle special forms
-        if (strcmp(fn->string, "quote") == 0)
-            return cadr(sexp);
-
-        if (strcmp(fn->string, "set") == 0)
+        if (fn_val->type == TYPE_ATOM_SYMBOL)
         {
-            SExpr *var = cadr(sexp);
-            SExpr *val = eval(caddr(sexp), env);
-            set(env, var, val);
-            return val;
-        }
+            // Handle special forms
+            if (strcmp(fn_val->string, "quote") == 0)
+                return cadr(sexp);
 
-        if (strcmp(fn->string, "define") == 0)
-        {
-            SExpr *name = cadr(sexp);
-
-            if (name->type == TYPE_ATOM_SYMBOL)
+            if (strcmp(fn_val->string, "set") == 0)
             {
-                // Simple variable definition: (define x expr)
+                SExpr *var = cadr(sexp);
                 SExpr *val = eval(caddr(sexp), env);
-                set(env, name, val);
-                return name;
+                set(env, var, val);
+                return val;
             }
-            else if (name->type == TYPE_CONS)
+
+            if (strcmp(fn_val->string, "define") == 0)
             {
-                // Function definition: (define (fname args...) body)
-                SExpr *fn_name = car(name); // function name symbol
-                SExpr *args = cdr(name);    // argument list
-                SExpr *body = caddr(sexp);  // body expression
+                SExpr *name = cadr(sexp);
 
-                SExpr *lambda_sym = symbol("lambda");
-                SExpr *lambda_list = cons(lambda_sym, cons(args, cons(body, nil())));
+                if (name->type == TYPE_ATOM_SYMBOL)
+                {
+                    // Simple variable definition: (define x expr)
+                    SExpr *val = eval(caddr(sexp), env);
+                    set(env, name, val);
+                    return name;
+                }
+                else if (name->type == TYPE_CONS)
+                {
+                    // Function definition: (define (fname args...) body)
+                    SExpr *fn_name = car(name); // function name symbol
+                    SExpr *args = cdr(name);    // argument list
+                    SExpr *body = caddr(sexp);  // body expression
 
-                set(env, fn_name, lambda_list);
-                return fn_name;
+                    SExpr *lambda_sym = symbol("lambda");
+                    SExpr *lambda_list = cons(lambda_sym, cons(args, cons(body, nil())));
+
+                    set(env, fn_name, lambda_list);
+                    return fn_name;
+                }
+                else
+                {
+                    return symbol("Error: Invalid define syntax");
+                }
             }
-            else
+
+            if (strcmp(fn_val->string, "lambda") == 0)
+                return sexp;
+
+            if (strcmp(fn_val->string, "and") == 0)
             {
-                return symbol("Error: Invalid define syntax");
-            }
-        }
-
-        if (strcmp(fn->string, "lambda") == 0)
-            return sexp;
-
-        if (strcmp(fn->string, "and") == 0)
-        {
-            SExpr *e1 = eval(cadr(sexp), env);
-            if (!is_truthy(e1))
-                return e1;
-            return eval(caddr(sexp), env);
-        }
-
-        if (strcmp(fn->string, "or") == 0)
-        {
-            SExpr *e1 = eval(cadr(sexp), env);
-            if (is_truthy(e1))
-                return e1;
-            return eval(caddr(sexp), env);
-        }
-
-        if (strcmp(fn->string, "if") == 0)
-        {
-            SExpr *test = eval(cadr(sexp), env);
-            if (test->type != TYPE_NIL)
+                SExpr *e1 = eval(cadr(sexp), env);
+                if (!is_truthy(e1))
+                    return e1;
                 return eval(caddr(sexp), env);
-            SExpr *if_false = cadddr(sexp); // 4th element: (cdr (cdr (cdr sexp)))
-            return eval(if_false, env);
-        }
-
-        if (strcmp(fn->string, "cond") == 0)
-        {
-            SExpr *branches = cdr(sexp);
-            while (branches && branches->type == TYPE_CONS)
-            {
-                SExpr *pair = car(branches);
-                SExpr *test_expr = car(pair);
-                if (test_expr->type == TYPE_ATOM_SYMBOL && strcmp(test_expr->string, "else") == 0)
-                    return eval(car(cdr(pair)), env);
-                SExpr *test = eval(test_expr, env);
-                if (test->type != TYPE_NIL)
-                    return eval(car(cdr(pair)), env);
-                branches = cdr(branches);
             }
-            return nil();
+
+            if (strcmp(fn_val->string, "or") == 0)
+            {
+                SExpr *e1 = eval(cadr(sexp), env);
+                if (is_truthy(e1))
+                    return e1;
+                return eval(caddr(sexp), env);
+            }
+
+            if (strcmp(fn_val->string, "if") == 0)
+            {
+                SExpr *test = eval(cadr(sexp), env);
+                if (is_truthy(test))
+                    return eval(caddr(sexp), env);
+                SExpr *if_false = cadddr(sexp); // 4th element
+                return eval(if_false, env);
+            }
+
+            if (strcmp(fn_val->string, "cond") == 0)
+            {
+                SExpr *branches = cdr(sexp);
+                while (branches && branches->type == TYPE_CONS)
+                {
+                    SExpr *pair = car(branches);
+                    SExpr *test_expr = car(pair);
+                    if (test_expr->type == TYPE_ATOM_SYMBOL && strcmp(test_expr->string, "else") == 0)
+                        return eval(car(cdr(pair)), env);
+                    SExpr *test = eval(test_expr, env);
+                    if (is_truthy(test))
+                        return eval(car(cdr(pair)), env);
+                    branches = cdr(branches);
+                }
+                return nil();
+            }
+
+            // Lookup function value again for built-in dispatch
+            SExpr *builtin_fn_val = lookup(env, fn_val);
+
+            // User-defined lambda function call
+            if (builtin_fn_val->type == TYPE_CONS && car(builtin_fn_val)->type == TYPE_ATOM_SYMBOL &&
+                strcmp(car(builtin_fn_val)->string, "lambda") == 0)
+            {
+                return eval_lambda_call(builtin_fn_val, sexp, env);
+            }
+
+            // Evaluate arguments
+            SExpr *evaled_args = eval_list(cdr(sexp), env);
+
+            // Dispatch built-in function
+            return dispatch_builtin(fn_val->string, evaled_args);
         }
-
-        // Evaluate the function symbol
-        SExpr *fn_val = lookup(env, fn);
-
-        // Lambda function call
-        if (fn_val->type == TYPE_CONS && car(fn_val)->type == TYPE_ATOM_SYMBOL &&
-            strcmp(car(fn_val)->string, "lambda") == 0)
+        else if (fn_val->type == TYPE_CONS && car(fn_val)->type == TYPE_ATOM_SYMBOL &&
+                 strcmp(car(fn_val)->string, "lambda") == 0)
         {
+            // Lambda expression directly in function position
             return eval_lambda_call(fn_val, sexp, env);
         }
-
-        // Built-in function call
-        SExpr *evaled_args = eval_list(cdr(sexp), env);
-
-        return dispatch_builtin(fn->string, evaled_args);
+        else
+        {
+            return symbol("Error: function name must be a symbol or lambda");
+        }
     }
 
     return nil();
