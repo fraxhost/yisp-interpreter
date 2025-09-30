@@ -568,6 +568,8 @@ void printSExpr(SExpr *s)
         printf("%g", s->number);
         break;
     case TYPE_ATOM_SYMBOL:
+        printf("%s", s->string);
+        break;
     case TYPE_ATOM_STRING:
         printf("\"%s\"", s->string); // Print with surrounding quotes
         break;
