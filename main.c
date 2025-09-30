@@ -802,12 +802,31 @@ SExpr *eval(SExpr *sexp, Env *env)
         if (strcmp(fn->string, "define") == 0)
         {
             SExpr *name = cadr(sexp);
-            SExpr *args = car(cddr(sexp));
-            SExpr *body = car(cdr(cddr(sexp)));
-            SExpr *lambda_sym = symbol("lambda");
-            SExpr *lambda_list = cons(lambda_sym, cons(args, cons(body, nil())));
-            set(env, name, lambda_list);
-            return name;
+
+            if (name->type == TYPE_ATOM_SYMBOL)
+            {
+                // Simple variable definition: (define x expr)
+                SExpr *val = eval(caddr(sexp), env);
+                set(env, name, val);
+                return name;
+            }
+            else if (name->type == TYPE_CONS)
+            {
+                // Function definition: (define (fname args...) body)
+                SExpr *fn_name = car(name); // function name symbol
+                SExpr *args = cdr(name);    // argument list
+                SExpr *body = caddr(sexp);  // body expression
+
+                SExpr *lambda_sym = symbol("lambda");
+                SExpr *lambda_list = cons(lambda_sym, cons(args, cons(body, nil())));
+
+                set(env, fn_name, lambda_list);
+                return fn_name;
+            }
+            else
+            {
+                return symbol("Error: Invalid define syntax");
+            }
         }
 
         if (strcmp(fn->string, "lambda") == 0)
