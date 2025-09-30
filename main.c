@@ -82,6 +82,8 @@ SExpr *gte(SExpr *a, SExpr *b);
 SExpr *eq(SExpr *a, SExpr *b);
 SExpr *not(SExpr *a);
 
+bool is_truthy(SExpr *sexp);
+void init_symbols();
 bool isNil(const char *input);
 bool isNumber(const char *input);
 bool isSymbol(const char *input);
@@ -101,6 +103,15 @@ void run();
 void runTests();
 
 // ==================== MANAGE ENVIRONMENT ====================
+
+SExpr *sym_true;
+SExpr *sym_nil;
+
+void init_symbols()
+{
+    sym_true = symbol("t"); // true symbol
+    sym_nil = nil();        // nil singleton from your code
+}
 
 Env *make_env(Env *parent)
 {
@@ -142,13 +153,21 @@ SExpr *lookup(Env *env, SExpr *symbol)
             vals = cdr(vals);
         }
 
-        env = env->parent; // move up to parent env
+        env = env->parent;
     }
-    // Not found: return symbol itself or nil or error symbol as you prefer
-    return symbol;
+    if (symbol->type == TYPE_ATOM_SYMBOL && strcmp(symbol->string, "nil") == 0)
+    {
+        return nil(); // Return canonical nil for symbol "nil"
+    }
+    return symbol; // else return symbol itself
 }
 
 // ==================== MANAGE S-EXPRESSION ====================
+
+bool is_truthy(SExpr *sexp)
+{
+    return sexp != NULL && sexp->type != TYPE_NIL;
+}
 
 SExpr *nil()
 {
@@ -490,27 +509,20 @@ SExpr *gte(SExpr *a, SExpr *b)
 SExpr *eq(SExpr *a, SExpr *b)
 {
     if (a == NULL || b == NULL)
-    {
-        return number(0);
-    }
-
+        return sym_nil;
     if (a->type != b->type)
-    {
-        return number(0);
-    }
-
+        return sym_nil;
     switch (a->type)
     {
     case TYPE_ATOM_NUMBER:
-        return number(a->number == b->number ? 1 : 0);
+        return (a->number == b->number) ? sym_true : sym_nil;
     case TYPE_ATOM_STRING:
     case TYPE_ATOM_SYMBOL:
-        return number(strcmp(a->string, b->string) == 0 ? 1 : 0);
+        return (strcmp(a->string, b->string) == 0) ? sym_true : sym_nil;
     case TYPE_NIL:
-        return number(1); // Both nil
+        return sym_true;
     default:
-        // For cons cells or other types, strict pointer equality (can be changed if deep comparison desired)
-        return number(a == b ? 1 : 0);
+        return (a == b) ? sym_true : sym_nil;
     }
 }
 
@@ -804,7 +816,7 @@ SExpr *eval(SExpr *sexp, Env *env)
         if (strcmp(fn->string, "and") == 0)
         {
             SExpr *e1 = eval(cadr(sexp), env);
-            if (e1->type == TYPE_NIL)
+            if (!is_truthy(e1))
                 return e1;
             return eval(caddr(sexp), env);
         }
@@ -812,8 +824,8 @@ SExpr *eval(SExpr *sexp, Env *env)
         if (strcmp(fn->string, "or") == 0)
         {
             SExpr *e1 = eval(cadr(sexp), env);
-            if (e1->type != TYPE_NIL)
-                return symbol("t");
+            if (is_truthy(e1))
+                return e1;
             return eval(caddr(sexp), env);
         }
 
@@ -822,7 +834,8 @@ SExpr *eval(SExpr *sexp, Env *env)
             SExpr *test = eval(cadr(sexp), env);
             if (test->type != TYPE_NIL)
                 return eval(caddr(sexp), env);
-            return eval(car(cdr(cdr(cdr(sexp)))), env);
+            SExpr *if_false = cadddr(sexp); // 4th element: (cdr (cdr (cdr sexp)))
+            return eval(if_false, env);
         }
 
         if (strcmp(fn->string, "cond") == 0)
@@ -831,7 +844,10 @@ SExpr *eval(SExpr *sexp, Env *env)
             while (branches && branches->type == TYPE_CONS)
             {
                 SExpr *pair = car(branches);
-                SExpr *test = eval(car(pair), env);
+                SExpr *test_expr = car(pair);
+                if (test_expr->type == TYPE_ATOM_SYMBOL && strcmp(test_expr->string, "else") == 0)
+                    return eval(car(cdr(pair)), env);
+                SExpr *test = eval(test_expr, env);
                 if (test->type != TYPE_NIL)
                     return eval(car(cdr(pair)), env);
                 branches = cdr(branches);
@@ -974,8 +990,11 @@ void runTests()
 
 int main()
 {
-    // runTests();
+    init_symbols();
+
     run();
+
+    // runTests();
 
     return 0;
 }
