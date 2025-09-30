@@ -60,31 +60,4 @@ void run(FILE *input_file)
     }
 }
 
-int main(int argc, char *argv[])
-{
-    init_symbols();
-
-    if (argc > 1)
-    {
-        if (strcmp(argv[1], "--test") == 0)
-        {
-            runTests();
-            return 0;
-        }
-
-        FILE *file = fopen(argv[1], "r");
-        if (!file)
-        {
-            fprintf(stderr, "Error opening file: %s\n", argv[1]);
-            return 1;
-        }
-        run(file);
-        fclose(file);
-    }
-    else
-    {
-        run(stdin);
-    }
-
-    return 0;
-}
+s

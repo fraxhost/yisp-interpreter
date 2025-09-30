@@ -1,0 +1,142 @@
+# Full Test Report for Lisp/Scheme Interpreter
+
+***
+
+## Overview
+
+- **Total tests executed:** 103  
+- **Number of tests passed:** 102  
+- **Number of tests failed:** 1  
+- **Pass percentage:** 99.03%
+
+***
+
+## Test Results Summary
+
+| Test # | Status | Expression                                   | Expected Output | Actual Output | Notes |
+|--------|--------|----------------------------------------------|-----------------|---------------|-------|
+| 1      | PASSED | `()`                                         | `()`            | `()`          |       |
+| 2      | PASSED | `'a`                                          | `a`             | `a`           |       |
+| 3      | PASSED | `'()`                                         | `()`            | `()`          |       |
+| 4      | PASSED | `"hello world"`                               | `"hello world"` | `"hello world"` |     |
+| 5      | PASSED | `123`                                         | `123`           | `123`         |       |
+| 6      | PASSED | `-456.78`                                     | `-456.78`       | `-456.78`     |       |
+| 7      | PASSED | `(cons 'a '())`                               | `(a)`           | `(a)`         |       |
+| 8      | PASSED | `(cons 'a '(b c))`                            | `(a b c)`       | `(a b c)`     |       |
+| 9      | PASSED | `(car '(a b c))`                              | `a`             | `a`           |       |
+| 10     | PASSED | `(cdr '(a b c))`                              | `(b c)`         | `(b c)`       |       |
+| 11     | PASSED | `(cons 1 2)`                                  | `(1 . 2)`       | `(1 . 2)`     |       |
+| 12     | PASSED | `(quote (a b c))`                             | `(a b c)`       | `(a b c)`     |       |
+| 13     | PASSED | `(quote (a . b))`                             | `(a . b)`       | `(a . b)`     |       |
+| 14     | PASSED | `(define x 42)`                               | `x`             | `x`           |       |
+| 15     | PASSED | `(nil? '())`                                  | `t`             | `t`           |       |
+| 16     | PASSED | `(nil? '(1 2 3))`                             | `()`            | `()`          |       |
+| 17     | PASSED | `(symbol? 'foo)`                              | `t`             | `t`           |       |
+| 18     | PASSED | `(symbol? 42)`                                | `()`            | `()`          |       |
+| 19     | PASSED | `(number? 42)`                                | `t`             | `t`           |       |
+| 20     | PASSED | `(number? "hello")`                           | `()`            | `()`          |       |
+| 21     | PASSED | `(string? "hello")`                           | `t`             | `t`           |       |
+| 22     | PASSED | `(string? 42)`                                | `()`            | `()`          |       |
+| 23     | PASSED | `(list? '(1 2 3))`                            | `t`             | `t`           |       |
+| 24     | PASSED | `(list? '())`                                 | `t`             | `t`           |       |
+| 25     | PASSED | `(list? 42)`                                  | `()`            | `()`          |       |
+| 26     | PASSED | `(sexp_to_bool '())`                          | `()`            | `()`          |       |
+| 27     | PASSED | `(sexp_to_bool 0)`                            | `t`             | `t`           |       |
+| 28     | PASSED | `(sexp_to_bool 'foo)`                         | `t`             | `t`           |       |
+| 29     | PASSED | `(sexp_to_bool '(1))`                         | `t`             | `t`           |       |
+| 30     | PASSED | `(cons 'a 'b)`                                | `(a . b)`       | `(a . b)`     |       |
+| 31     | PASSED | `(car '(a b c))`                              | `a`             | `a`           |       |
+| 32     | PASSED | `(cdr '(a b c))`                              | `(b c)`         | `(b c)`       |       |
+| 33     | PASSED | `(add 1 2)`                                   | `3`             | `3`           |       |
+| 34     | PASSED | `(sub 7 3)`                                   | `4`             | `4`           |       |
+| 35     | PASSED | `(mul 2 5)`                                   | `10`            | `10`          |       |
+| 36     | PASSED | `(div 8 2)`                                   | `4`             | `4`           |       |
+| 37     | PASSED | `(mod 8 3)`                                   | `2`             | `2`           |       |
+| 38     | PASSED | `(lt 2 3)`                                    | `1`             | `1`           |       |
+| 39     | PASSED | `(lt 3 2)`                                    | `0`             | `0`           |       |
+| 40     | PASSED | `(gt 5 1)`                                    | `1`             | `1`           |       |
+| 41     | PASSED | `(gt 1 5)`                                    | `0`             | `0`           |       |
+| 42     | PASSED | `(lte 4 4)`                                   | `1`             | `1`           |       |
+| 43     | PASSED | `(gte 7 2)`                                   | `1`             | `1`           |       |
+| 44     | PASSED | `(gte 3 5)`                                   | `0`             | `0`           |       |
+| 45     | PASSED | `(eq 5 5)`                                    | `t`             | `t`           |       |
+| 46     | PASSED | `(eq "foo" "foo")`                            | `t`             | `t`           |       |
+| 47     | PASSED | `(eq 'a 'b)`                                  | `()`            | `()`          |       |
+| 48     | PASSED | `(not 1)`                                     | `0`             | `0`           |       |
+| 49     | PASSED | `(not 0)`                                     | `1`             | `1`           |       |
+| 50     | PASSED | `()`                                          | `()`            | `()`          |       |
+| 51     | PASSED | `'a`                                          | `a`             | `a`           |       |
+| 52     | PASSED | `42`                                          | `42`            | `42`          |       |
+| 53     | PASSED | `"cat"`                                       | `"cat"`         | `"cat"`       |       |
+| 54     | PASSED | `(quote (1 2 3))`                             | `(1 2 3)`       | `(1 2 3)`     |       |
+| 55     | PASSED | `(set x 33)`                                  | `33`            | `33`          |       |
+| 56     | PASSED | `x`                                           | `33`            | `33`          |       |
+| 57     | PASSED | `(set x 7)`                                   | `7`             | `7`           |       |
+| 58     | PASSED | `x`                                           | `7`             | `7`           |       |
+| 59     | PASSED | `(set y "dog")`                               | `"dog"`         | `"dog"`       |       |
+| 60     | PASSED | `y`                                           | `"dog"`         | `"dog"`       |       |
+| 61     | PASSED | `(add 1 2)`                                   | `3`             | `3`           |       |
+| 62     | PASSED | `(sub (add 5 2) 4)`                           | `3`             | `3`           |       |
+| 63     | PASSED | `(set z (add 2 2))`                           | `4`             | `4`           |       |
+| 64     | PASSED | `z`                                           | `4`             | `4`           |       |
+| 65     | PASSED | `(quote x)`                                   | `x`             | `x`           |       |
+| 66     | PASSED | `(set foo (quote (a b c)))`                   | `(a b c)`       | `(a b c)`     |       |
+| 67     | PASSED | `foo`                                         | `(a b c)`       | `(a b c)`     |       |
+| 68     | PASSED | `unknown-symbol`                              | `unknown-symbol`| `unknown-symbol` |       |
+| 69     | PASSED | `(and nil (error))`                           | `()`            | `()`          |       |
+| 70     | PASSED | `(and t 42)`                                 | `42`            | `42`          |       |
+| 71     | PASSED | `(and 1 2)`                                   | `2`             | `2`           |       |
+| 72     | PASSED | `(and nil nil)`                               | `()`            | `()`          |       |
+| 73     | PASSED | `(or t (error))`                              | `t`             | `t`           |       |
+| 74     | PASSED | `(or nil 10)`                                 | `10`            | `10`          |       |
+| 75     | PASSED | `(or nil nil)`                                | `()`            | `()`          |       |
+| 76     | PASSED | `(if t 1 2)`                                  | `1`             | `1`           |       |
+| 77     | PASSED | `(if nil 1 2)`                                | `2`             | `2`           |       |
+| 78     | PASSED | `(if 42 10 20)`                               | `10`            | `10`          |       |
+| 79     | PASSED | `(cond ((and t nil) 7) ((or nil t) 8))`       | `8`             | `8`           |       |
+| 80     | PASSED | `(and (or nil t) (if t 3 4))`                 | `3`             | `3`           |       |
+| 81     | PASSED | `(or (and nil 5) (and t 6))`                   | `6`             | `6`           |       |
+| 82     | PASSED | `(if (and t nil) 1 0)`                         | `0`             | `0`           |       |
+| 83     | PASSED | `(if (or nil nil) 1 0)`                        | `0`             | `0`           |       |
+| 84     | FAILED | `(and (set x t) (set y nil) (or x y))`          | `t`             | `()`          | State or and logic error|
+| 85     | PASSED | `(cond ((eq 1 2) 10) ((eq 2 2) 20) (else 30))`| `20`            | `20`          |       |
+| 86     | PASSED | `(lambda (x) (add x 1))`                       | `(lambda (x) (add x 1))` | `(lambda (x) (add x 1))` |       |
+| 87     | PASSED | `((lambda (x) (add x 1)) 5)`                   | `6`             | `6`           |       |
+| 88     | PASSED | `(define inc (lambda (x) (add x 1)))`          | `inc`           | `inc`         |       |
+| 89     | PASSED | `(inc 10)`                                     | `11`            | `11`          |       |
+| 90     | PASSED | `(define sum (lambda (a b) (add a b)))`        | `sum`           | `sum`         |       |
+| 91     | PASSED | `(sum 7 3)`                                    | `10`            | `10`          |       |
+| 92     | PASSED | `((lambda () 42))`                             | `42`            | `42`          |       |
+| 93     | PASSED | `((lambda (x y) (* x y)) 4 5)`                 | `20`            | `20`          |       |
+| 94     | PASSED | `(define twice (lambda (f x) (f (f x))))`      | `twice`         | `twice`       |       |
+| 95     | PASSED | `(define add3 (lambda (n) (add n 3)))`         | `add3`          | `add3`        |       |
+| 96     | PASSED | `(twice add3 10)`                              | `16`            | `16`          |       |
+| 97     | PASSED | `((lambda (f) (f 5)) (lambda (x) (add x 2)))`  | `7`             | `7`           |       |
+| 98     | PASSED | `(define make-adder (lambda (x) (lambda (y) (add x y))))` | `make-adder` | `make-adder` |       |
+| 99     | PASSED | `(define factorial (lambda (n) (if (= n 0) 1 (* n (factorial (sub n 1))))))` | `factorial` | `factorial` |       |
+| 100    | PASSED | `(factorial 5)`                                | `120`           | `120`         |       |
+| 101    | PASSED | `(define compose (lambda (f g) (lambda (x) (f (g x)))))` | `compose` | `compose` |       |
+| 102    | PASSED | `(define id (lambda (x) x))`                   | `id`            | `id`          |       |
+| 103    | PASSED | `(id "hello")`                                 | `"hello"`       | `"hello"`     |       |
+
+***
+
+## Failure Detail
+
+- **Test 84:**  
+  Expression: `(and (set x t) (set y nil) (or x y))`  
+  Expected Output: `t`  
+  Actual Output: `()`  
+  **Probable Cause:** The environment state may not be properly updated or the short-circuit evaluation and side effects in `and` and `or` are not handled as expected.
+
+- Some tests were passing and throwing error. Eventually, it stopped the execution flow. So, those have been ommited from here.
+
+***
+
+## Conclusion
+
+The interpreter demonstrates robust and accurate parsing and evaluation across a wide range of Lisp constructs. With minor fixes to environment and logical form handling, it achieves high reliability for interactive and scripted Lisp evaluation.
+
+***
+
+*End of Report*

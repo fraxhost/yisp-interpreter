@@ -1,0 +1,57 @@
+Test Plan for Lisp/Scheme Interpreter
+-------------------------------------
+
+1. Basic S-Expression Parsing and Printing
+	•	Validate correct parsing and printing of:
+	•	Empty lists ( () ),
+	•	Symbols and quoted symbols ( 'a ),
+	•	Numbers (integers, floats),
+	•	Strings with quotes,
+	•	Proper lists and dotted pairs,
+	•	Quote special form.
+Purpose: Ensure fundamental syntax handling and output formatting are correct.
+
+2. Predicate Functions
+	•	Test all built-in predicates like  nil? ,  symbol? ,  number? ,  string? ,  list? ,  sexp_to_bool .
+	•	Inputs cover positive and negative cases,
+	•	Verify that predicates return expected  t  (true) or  ()  (false).
+Purpose: Validate type checking and truthiness semantics.
+
+3. Arithmetic and Comparison Operations
+	•	Test arithmetic:  add ,  sub ,  mul ,  div ,  mod .
+	•	Test comparisons:  lt ,  gt ,  lte ,  gte ,  eq ,  not .
+	•	Includes normal cases and error triggers (division/mod by zero, type mismatches).
+Purpose: Ensure numerical computations and comparisons perform correctly and error conditions are caught.
+
+4. Environment and Variable Handling
+	•	Tests for  set  variable bindings and retrieval.
+	•	Tests quoted expressions vs unevaluated symbols.
+	•	Verify persistent state changes across test cases.
+Purpose: Validate environment functionality and variable resolution.
+
+5. Logical and Control Flow Constructs
+	•	Evaluate  and ,  or ,  if ,  cond  with nested expressions and short-circuit behavior.
+	•	Include error cases and  else  branches.
+Purpose: Verify boolean logic and branching control behave per Scheme semantics.
+
+6. Lambda and Functional Programming Features
+	•	Create/lambda expressions: anonymous functions, closures.
+	•	Function definition ( define ), recursion (factorial).
+	•	Higher-order functions ( twice ,  compose ,  make-adder ).
+	•	Function application tests with multiple arguments.
+	•	Edge cases: zero-arg lambdas, passing lambdas as arguments.
+Purpose: Test core functional programming capabilities and lexical scoping support.
+
+7. Error Handling
+	•	Confirm that improper function calls, invalid arguments, or semantic errors produce meaningful error messages.
+	•	Includes division by zero, type errors, undefined symbols.
+Purpose: Ensure robustness and user-friendly diagnostics.
+
+Execution and Reporting
+	•	Use the shared environment across all tests to simulate interactive session state.
+	•	For each test:
+	•	Parse input expression,
+	•	Evaluate in environment,
+	•	Serialize output to string,
+	•	Compare with expected output string,
+	•	Report pass/fail visually in console with details.
