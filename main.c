@@ -50,14 +50,56 @@ void run(FILE *input_file)
         buffer[size] = '\0';
 
         const char *ptr = buffer;
-        SExpr *sexpr = parseSExpr(&ptr);
-        SExpr *result = eval(sexpr, global_env);
+        while (*ptr != '\0')
+        {
+            // Skip whitespace before parsing next expression
+            while (*ptr && isspace(*ptr))
+                ptr++;
 
-        printSExpr(result);
-        printf("\n");
+            if (*ptr == '\0')
+                break;
+
+            SExpr *sexpr = parseSExpr(&ptr);
+            if (!sexpr)
+            {
+                printf("Parse error\n");
+                break;
+            }
+
+            SExpr *result = eval(sexpr, global_env);
+            printSExpr(result);
+            printf("\n");
+        }
 
         free(buffer);
     }
 }
 
-s
+int main(int argc, char *argv[])
+{
+    init_symbols();
+
+    if (argc > 1)
+    {
+        if (strcmp(argv[1], "--test") == 0)
+        {
+            runTests();
+            return 0;
+        }
+
+        FILE *file = fopen(argv[1], "r");
+        if (!file)
+        {
+            fprintf(stderr, "Error opening file: %s\n", argv[1]);
+            return 1;
+        }
+        run(file);
+        fclose(file);
+    }
+    else
+    {
+        run(stdin);
+    }
+
+    return 0;
+}
