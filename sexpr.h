@@ -259,8 +259,29 @@ SExpr *cadddr(SExpr *sexp)
 
 void skipWhitespace(const char **input)
 {
-    while (isspace(**input))
+    while (**input != '\0')
+    {
+        // Skip regular whitespace
+        if (isspace(**input))
+{
         (*input)++;
+continue;
+        }
+
+        // Skip comments starting with ';'
+        if (**input == ';')
+        {
+            // Skip until end of line or end of string
+            while (**input != '\n' && **input != '\0')
+            {
+                (*input)++;
+            }
+            continue;
+        }
+
+        // Stop when non-whitespace/non-comment character found
+        break;
+    }
 }
 
 SExpr *parseNumber(const char **input)
