@@ -762,9 +762,37 @@ SExpr *eval_list(SExpr *args, Env *env)
     return cons(first_eval, rest_eval);
 }
 
+SExpr *builtin_print(SExpr *args)
+{
+    if (!args || args->type == TYPE_NIL)
+    {
+        printf("()\n");
+        return sym_nil;
+    }
+
+    SExpr *cur = args;
+    SExpr *last = sym_nil;
+
+    while (cur && cur->type == TYPE_CONS)
+    {
+        SExpr *arg = car(cur);
+        printSExpr(arg);
+        printf(" "); // space between printed items
+        last = arg;  // remember last printed
+        cur = cdr(cur);
+    }
+
+    printf("\n");
+    fflush(stdout);
+
+    return sym_nil;
+}
+
 // Helper: Dispatch built-in functions by name and evaluated args
 SExpr *dispatch_builtin(const char *fn_name, SExpr *args)
 {
+    if (strcmp(fn_name, "print") == 0 || strcmp(fn_name, "display") == 0)
+        return builtin_print(args);
     if (strcmp(fn_name, "+") == 0 || strcmp(fn_name, "add") == 0)
         return add(car(args), car(cdr(args)));
     if (strcmp(fn_name, "-") == 0 || strcmp(fn_name, "sub") == 0)
